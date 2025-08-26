@@ -1,6 +1,6 @@
 # Peppo AI Video Generator
 
-**🚀 Live Demo: [https://peppo-ai-challenge.streamlit.app/](https://peppo-ai-challenge.streamlit.app/)**
+**Live Demo: [https://peppo-ai-challenge.streamlit.app/](https://peppo-ai-challenge.streamlit.app/)**
 
 **Internship Task Submission - AI Video Generation App**
 
@@ -16,10 +16,6 @@ A Streamlit application that generates videos from text prompts using Stability 
 - **Fallback System**: Demo videos when API unavailable  
 
 ## Quick Setup
-
-### Requirements
-- Python 3.8+
-- Stability AI API Key
 
 ### Installation
 ```bash
@@ -76,13 +72,7 @@ Project Structure:
 
 ## Deployment
 
-**Live Demo:** [Your deployed URL here]
-
-### Deployment Options:
-- **Streamlit Cloud**: Connect GitHub repo → Deploy
-- **Railway**: `railway up`
-- **Render**: Connect repo → Auto-deploy
-- **Heroku**: Standard deployment process
+This application is deployed using **Streamlit Cloud** for easy access and demonstration.
 
 ## Configuration
 
