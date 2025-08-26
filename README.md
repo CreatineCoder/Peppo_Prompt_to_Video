@@ -1,140 +1,150 @@
-# 🎬 Peppo AI Video Generator
+# Peppo AI Video Generator
 
-# Peppo AI Engineering Internship Challenge
+**Internship Task Submission - AI Video Generation App**
 
-A beautiful Streamlit application that generates 5-10 second videos from text prompts using **OpenAI's Sora model**. Built with a futuristic sci-fi theme and modular architecture for scalability.
+A Streaml## Usage
 
-## 🎯 Challenge Requirements
+1. **Enter Prompt**: Describe your desired videoapplication that generates videos from text prompts using Stability AI's Stable Video Diffusion with an elegant futuristic interface.
 
-- ✅ Text input box for user prompts
-- ✅ AI video generation (5-10 seconds)
-- ✅ Video display in browser
-- ✅ Download functionality
-- 🚀 Ready for cloud deployment
+## Task Implementation
 
-## 🚀 Getting Started
+- **Text Input**: User-friendly prompt input box  
+- **AI Video Generation**: 5-10 second videos using Stability AI  
+- **Video Display**: In-browser video playback  
+- **Download Feature**: One-click MP4 downloads  
+- **Modern UI**: Futuristic sci-fi themed interface  
+- **Fallback System**: Demo videos when API unavailable  
 
-### Prerequisites
+## Quick Setup
+
+### Requirements
 - Python 3.8+
-- pip package manager
+- Stability AI API Key
 
 ### Installation
+```bash
+# Clone repository
+git clone https://github.com/CreatineCoder/Peppo_Prompt_to_Video.git
+cd Peppo_Prompt_to_Video
 
-1. Clone the repository:
-   ```powershell
-   git clone <your-repo-url>
-   cd Peppo
-   ```
+# Install dependencies
+pip install -r requirements.txt
 
-2. Install dependencies:
-   ```powershell
-   pip install -r requirements.txt
-   ```
+# Configure API (optional)
+echo "STABILITY_API_KEY=sk-your-key-here" > .env
 
-3. Run the app:
-   ```powershell
-   streamlit run app.py
-   ```
-
-4. Open your browser and go to `http://localhost:8501`
-
-## 🔧 Configuration
-
-### API Setup
-The app supports multiple AI video generation providers:
-- **Runway ML**: Get API key from [Runway ML](https://runwayml.com/)
-- **Stable Video Diffusion**: Use Hugging Face or Stability AI
-- **Pika Labs**: Get access from [Pika Labs](https://pika.art/)
-- **Custom API**: Configure your own endpoint
-
-### Environment Variables (Optional)
-Create a `.env` file for default API keys:
-```
-RUNWAY_API_KEY=your_runway_key
-STABILITY_API_KEY=your_stability_key
-PIKA_API_KEY=your_pika_key
+# Run application
+streamlit run app.py
 ```
 
-## 🎨 Features
+### Access
+Open `http://localhost:8501` in your browser
 
-- **Interactive UI**: Clean, modern Streamlit interface
-- **Multiple AI Providers**: Support for various video generation APIs
-- **Customizable Parameters**: Duration, style, and quality settings
-- **Real-time Progress**: Progress tracking during generation
-- **Video Preview**: In-browser video playback
-- **Download Support**: Save generated videos locally
+## Architecture
 
-## 🌐 Deployment
-
-### Render (Recommended)
-1. Fork this repository
-2. Connect to Render
-3. Add environment variables
-4. Deploy!
-
-### Railway
-```powershell
-railway login
-railway init
-railway up
+```
+Project Structure:
+├── app.py                      # Main Streamlit app
+├── video_generator.py          # Video generation logic  
+├── config.py                   # Configuration management
+├── api_clients/
+│   ├── stability_ai_client.py  # Stability AI integration
+│   └── stable_video_client.py  # SVD API client
+└── utils/file_handler.py       # File operations
 ```
 
-### Vercel
-```powershell
-vercel --prod
+## Features
+
+**Core Functionality:**
+- Text-to-video generation using Stability AI
+- Multiple video styles (Cinematic, Realistic, Fantasy, etc.)
+- Duration control (5-10 seconds)
+- Real-time generation progress
+- Video preview and download
+
+**UI/UX:**
+- Futuristic space-themed design
+- Animated backgrounds and effects
+- Responsive layout
+- Clean, intuitive interface
+
+**Technical:**
+- Modular architecture
+- Error handling with fallbacks
+- Session state management
+- Temporary file cleanup
+
+## Deployment
+
+**Live Demo:** [Your deployed URL here]
+
+### Deployment Options:
+- **Streamlit Cloud**: Connect GitHub repo → Deploy
+- **Railway**: `railway up`
+- **Render**: Connect repo → Auto-deploy
+- **Heroku**: Standard deployment process
+
+## Configuration
+
+### API Integration
+The app uses Stability AI's Stable Video Diffusion:
+- Generates high-quality images as fallback
+- Attempts SVD video generation when available
+- Falls back to demo videos when needed
+
+### Environment Variables
+```env
+STABILITY_API_KEY=sk-your-stability-ai-key
+DEBUG=False
+MAX_FILE_SIZE=104857600
 ```
 
-### AWS/GCP/Azure
-See deployment guides in `/docs` folder.
+## � Usage
 
-## 📝 API Integration
+1. **Enter Prompt**: Describe your desired video
+2. **Select Style**: Choose from available presets
+3. **Set Duration**: Use slider for 5-10 seconds
+4. **Generate**: Click to start AI generation
+5. **Download**: Save your generated content
 
-Replace the demo functions in `app.py` with actual API calls:
+### Example Prompts:
+- "A cat playing with yarn in a sunny garden"
+- "Sunset over mountain peaks with birds flying"
+- "Futuristic city with flying cars at night"
 
-```python
-def call_runway_api(prompt, api_key, duration, style):
-    # Your Runway ML integration
-    pass
-```
+## Technical Details
 
-## 🔒 Security Notes
+**Frontend:** Streamlit with custom CSS/animations  
+**Backend:** Python with async video processing  
+**AI Service:** Stability AI Stable Video Diffusion  
+**Storage:** Temporary file system with cleanup  
+**Deployment:** Cloud-ready with environment configs  
 
-- Never commit API keys to version control
-- Use environment variables for sensitive data
-- Validate all user inputs
-- Implement rate limiting for production
+## Performance
 
-## 🐛 Troubleshooting
+- **Generation Time**: 30 seconds - 3 minutes
+- **Video Quality**: Up to 1024x576 resolution  
+- **File Formats**: MP4 output
+- **Fallback**: Demo videos + generated images
 
-### Common Issues
-- **API Key Error**: Verify your API key is correct
-- **Video Not Loading**: Check file permissions and paths
-- **Slow Generation**: Video AI APIs can take 1-5 minutes
+## Task Completion
 
-### Support
-- Check the logs in Streamlit
-- Verify internet connection
-- Ensure API credits are available
+**Deliverables:**
+- Functional video generation app
+- Clean, modern user interface  
+- GitHub repository with documentation
+- Deployment-ready configuration
+- Error handling and fallbacks
 
-## 📊 Performance
-
-- **Generation Time**: 30 seconds - 5 minutes (depending on API)
-- **Video Quality**: Up to 1080p (API dependent)
-- **File Size**: 5-50MB per video
-
-## 🏆 Challenge Submission
-
-1. ✅ Live app link: `[Your deployed URL]`
-2. ✅ GitHub repository: `[Your repo URL]`
-3. ✅ Demo video: Show app functionality
-4. ✅ Documentation: This README
-
-## 🙏 Acknowledgments
-
-- Streamlit for the amazing framework
-- AI video generation API providers
-- Peppo for the internship opportunity
+**Technical Skills Demonstrated:**
+- Python/Streamlit development
+- API integration (Stability AI)
+- Async programming
+- UI/UX design
+- Cloud deployment
+- Documentation
 
 ---
 
-**Made with ❤️ for the Peppo AI Engineering Internship Challenge**
+**Built for Peppo AI Engineering Internship Challenge**  
+*Demonstrating full-stack development and AI integration capabilities*
