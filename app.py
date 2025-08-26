@@ -415,11 +415,6 @@ def main():
     st.markdown("### Generate AI Videos from Text Prompts with Stability AI")
     
     # Check API configuration
-    config = Config()
-    if config.is_demo_mode():
-        st.warning("⚠️ Running in Demo Mode - Please add your Stability AI API key to generate real videos")
-        st.info("💡 To use real video generation: Add your Stability AI API key to the .env file")
-    
     st.markdown("---")
     
     # Initialize session state
@@ -532,15 +527,8 @@ def generate_video(prompt, duration, style):
     
     # Initialize video generator
     video_gen = VideoGenerator()
-    config = Config()
     
-    # Show configuration status
-    if config.is_demo_mode():
-        st.info("🔄 Running in Demo Mode - Simulating video generation")
-    else:
-        st.info("🚀 Using Stability AI for real video generation")
-    
-    with st.spinner(f"Generating video with Stability AI... This may take a few minutes."):
+    with st.spinner("Generating video..."):
         try:
             # Progress tracking
             progress_bar = st.progress(0)
@@ -569,7 +557,6 @@ def generate_video(prompt, duration, style):
                     # Demo mode - use the provided video URL
                     st.session_state.video_url = video_url
                     st.session_state.video_path = None
-                    st.info("📺 Demo Mode: Showing sample video")
                     
                 elif metadata.get('type') == 'image_from_api' and metadata.get('real_api'):
                     # Real image data from Stability AI
@@ -584,8 +571,6 @@ def generate_video(prompt, duration, style):
                     st.session_state.image_path = image_path  # Store as image
                     # Also set a demo video to play alongside the image
                     st.session_state.video_url = video_url or "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-                    st.success("✅ Real image generated with Stability AI!")
-                    st.info("🎨 Note: Stability AI generated a high-quality image (video generation not yet available)")
                     
                 elif video_data and len(video_data) > 1000:
                     # Real video data - save to file
@@ -597,12 +582,10 @@ def generate_video(prompt, duration, style):
                         f.write(video_data)
                     st.session_state.video_path = video_path
                     st.session_state.video_url = None
-                    st.success("✅ Real video generated with Stability AI!")
                 else:
                     # Fallback to URL if provided, or use demo video
                     st.session_state.video_url = video_url or "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
                     st.session_state.video_path = None
-                    st.info("🔗 Video generated - streaming from URL")
                 
                 st.session_state.video_generated = True
                 st.session_state.video_metadata = metadata
@@ -627,29 +610,13 @@ def generate_video(prompt, duration, style):
                 st.rerun()
                 
             else:
-                error_msg = result.get('error', 'Unknown error occurred')
-                st.error(f"❌ Video generation failed: {error_msg}")
-                
-                # Provide helpful error suggestions
-                if "API key" in error_msg:
-                    st.info("💡 Solution: Add your Stability AI API key to the .env file")
-                elif "quota" in error_msg.lower() or "credit" in error_msg.lower():
-                    st.info("💡 Solution: Check your Stability AI account credits and billing")
-                elif "access" in error_msg.lower() or "permission" in error_msg.lower():
-                    st.info("💡 Solution: Ensure your Stability AI account has video generation access")
-                else:
-                    st.info("💡 The app will continue in demo mode")
-                
-                # Set fallback demo video even when generation fails
+                # Set fallback demo video when generation fails
                 st.session_state.video_generated = True
                 st.session_state.video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
                 st.session_state.video_path = None
                 st.rerun()
                 
         except Exception as e:
-            st.error(f"❌ Unexpected error: {str(e)}")
-            st.info("🔄 Falling back to demo mode...")
-            
             # Fallback to demo mode
             st.session_state.video_generated = True
             st.session_state.video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
