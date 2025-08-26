@@ -1,10 +1,10 @@
 # Peppo AI Video Generator
 
+**🚀 Live Demo: [https://peppo-ai-challenge.streamlit.app/](https://peppo-ai-challenge.streamlit.app/)**
+
 **Internship Task Submission - AI Video Generation App**
 
-A Streaml## Usage
-
-1. **Enter Prompt**: Describe your desired videoapplication that generates videos from text prompts using Stability AI's Stable Video Diffusion with an elegant futuristic interface.
+A Streamlit application that generates videos from text prompts using Stability AI's Stable Video Diffusion with an elegant futuristic interface.
 
 ## Task Implementation
 
