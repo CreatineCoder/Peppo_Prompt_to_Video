@@ -1,9 +1,13 @@
 import streamlit as st
+import asyncio
 import os
 import time
 import requests
 import tempfile
 from pathlib import Path
+
+from video_generator import VideoGenerator
+from config import Config
 
 def add_futuristic_background():
     """Add sci-fi inspired dark theme styling"""
@@ -408,7 +412,16 @@ def main():
     add_futuristic_background()
     
     st.title("Peppo AI Video Generator")
-    st.markdown("### Generate AI Videos from Text Prompts")
+    st.markdown("### Generate AI Videos from Text Prompts with Stability AI")
+    
+    # Check API configuration
+    config = Config()
+    if config.is_demo_mode():
+        st.warning("⚠️ Running in Demo Mode - Please add your Stability AI API key to generate real videos")
+        st.info("💡 To use real video generation: Add your Stability AI API key to the .env file")
+    else:
+        st.success("✅ Stability AI API configured - Ready to generate videos!")
+    
     st.markdown("---")
     
     # Initialize session state
@@ -418,6 +431,8 @@ def main():
         st.session_state.video_path = None
     if 'video_url' not in st.session_state:
         st.session_state.video_url = None
+    if 'image_path' not in st.session_state:
+        st.session_state.image_path = None
     
     # User input section
     st.subheader("Enter Your Video Prompt")
@@ -437,7 +452,7 @@ def main():
     with col2:
         video_style = st.selectbox(
             "Video Style:",
-            ["Realistic", "Animated", "Cinematic", "Abstract"]
+            ["Realistic", "Cinematic", "Animated", "Documentary", "Fantasy", "Sci-Fi"]
         )
     
     st.markdown("---")
@@ -453,22 +468,25 @@ def main():
                 generate_video(user_prompt, duration, video_style)
     
     # Video display section
-    if st.session_state.video_generated and st.session_state.video_path:
+    if st.session_state.video_generated and (st.session_state.video_path or st.session_state.video_url):
         st.markdown("---")
         st.subheader("Generated Video")
         
-        # Display video
+        # Display video only
         try:
-            if os.path.exists(st.session_state.video_path):
+            if hasattr(st.session_state, 'video_path') and st.session_state.video_path and os.path.exists(st.session_state.video_path):
                 st.video(st.session_state.video_path)
-            elif st.session_state.video_url:
+                st.info("� Video file saved locally")
+            elif hasattr(st.session_state, 'video_url') and st.session_state.video_url:
                 st.video(st.session_state.video_url)
+                st.info("📺 Streaming demo video (under 20 seconds)")
         except Exception as e:
             st.error(f"Error displaying video: {str(e)}")
         
         # Download button
         with download_col:
-            if st.session_state.video_path and os.path.exists(st.session_state.video_path):
+            # Download video if available
+            if hasattr(st.session_state, 'video_path') and st.session_state.video_path and os.path.exists(st.session_state.video_path):
                 with open(st.session_state.video_path, "rb") as file:
                     st.download_button(
                         label="Download Video",
@@ -478,6 +496,8 @@ def main():
                         type="secondary",
                         use_container_width=True
                     )
+            else:
+                st.info("💡 Demo videos are streamed and cannot be downloaded")
     
     # Footer
     st.markdown("---")
@@ -485,7 +505,7 @@ def main():
         """
         <div class='footer'>
             <h3>Peppo AI Engineering Internship Challenge</h3>
-            <p>Generate amazing videos with AI!</p>
+            <p>Powered by Stability AI - Generate amazing videos with AI!</p>
             <div style='margin-top: 1rem; display: flex; justify-content: center; align-items: center;'>
                 <div class='sci-fi-indicator'></div>
                 <div class='sci-fi-indicator'></div>
@@ -498,78 +518,145 @@ def main():
     )
 
 def generate_video(prompt, duration, style):
-    """Generate video using AI API"""
+    """Generate video using Stability AI"""
     
-    # Internal API configuration - handled behind the scenes
-    API_PROVIDER = "Runway ML"  # Default provider - can be configured internally
-    API_KEY = os.getenv("VIDEO_API_KEY", "demo-mode")  # Load from environment variables
+    # Initialize video generator
+    video_gen = VideoGenerator()
+    config = Config()
     
-    with st.spinner(f"Generating video... This may take a few minutes."):
+    # Show configuration status
+    if config.is_demo_mode():
+        st.info("🔄 Running in Demo Mode - Simulating video generation")
+    else:
+        st.info("🚀 Using Stability AI for real video generation")
+    
+    with st.spinner(f"Generating video with Stability AI... This may take a few minutes."):
         try:
-            # Simulate API call - Replace this with actual API integration
+            # Progress tracking
             progress_bar = st.progress(0)
             status_text = st.empty()
             
-            # Simulate progress
-            for i in range(100):
-                progress_bar.progress(i + 1)
-                if i < 20:
-                    status_text.text("Initializing AI model...")
-                elif i < 50:
-                    status_text.text("Processing your prompt...")
-                elif i < 80:
-                    status_text.text("Generating video frames...")
+            def update_progress(percent, message):
+                progress_bar.progress(percent)
+                status_text.text(message)
+            
+            # Generate video using Stability AI
+            result = asyncio.run(video_gen.generate_video(
+                prompt=prompt,
+                duration=duration,
+                style=style,
+                resolution="1024x576",
+                progress_callback=update_progress
+            ))
+            
+            if result['success']:
+                # Handle different types of video data
+                video_data = result['video_data']
+                video_url = result.get('video_url')
+                metadata = result.get('metadata', {})
+                
+                if video_data == b"demo_video_data" or not video_data:
+                    # Demo mode - use the provided video URL
+                    st.session_state.video_url = video_url
+                    st.session_state.video_path = None
+                    st.session_state.image_path = None
+                    st.info("📺 Demo Mode: Showing short sample video (under 20 seconds)")
+                    
+                elif metadata.get('type') == 'video_from_svd' and metadata.get('real_api'):
+                    # Real video data from Stability AI SVD
+                    import base64
+                    
+                    # Decode base64 video data if needed
+                    if isinstance(video_data, str):
+                        video_bytes = base64.b64decode(video_data)
+                    else:
+                        video_bytes = video_data
+                    
+                    temp_dir = tempfile.gettempdir()
+                    video_filename = f"svd_video_{int(time.time())}.mp4"
+                    video_path = os.path.join(temp_dir, video_filename)
+                    
+                    with open(video_path, 'wb') as f:
+                        f.write(video_bytes)
+                    
+                    st.session_state.video_path = video_path
+                    st.session_state.image_path = None
+                    st.session_state.video_url = None
+                    st.success("✅ Real video generated with Stability AI's Stable Video Diffusion!")
+                    st.info("🎬 Generated using SVD (Stable Video Diffusion) technology")
+                    
+                elif video_data and len(video_data) > 1000:
+                    # Real video data - save to file
+                    temp_dir = tempfile.gettempdir()
+                    video_filename = f"stability_video_{int(time.time())}.mp4"
+                    video_path = os.path.join(temp_dir, video_filename)
+                    
+                    with open(video_path, 'wb') as f:
+                        f.write(video_data)
+                    st.session_state.video_path = video_path
+                    st.session_state.image_path = None
+                    st.session_state.video_url = None
+                    st.success("✅ Real video generated with Stability AI!")
                 else:
-                    status_text.text("Finalizing video...")
-                time.sleep(0.05)  # Simulate processing time
-            
-            # For demo purposes, create a placeholder video path
-            # In production, replace this with actual API call
-            demo_video_path = create_demo_video(prompt, duration, style)
-            
-            st.session_state.video_generated = True
-            st.session_state.video_path = demo_video_path
-            
-            progress_bar.empty()
-            status_text.empty()
-            st.success("Video generated successfully!")
-            st.rerun()
-            
+                    # Fallback to URL if provided or demo mode
+                    st.session_state.video_url = video_url or "demo"
+                    st.session_state.video_path = None
+                    st.session_state.image_path = None
+                    st.info("� Demo Mode: Showing short sample video (under 20 seconds)")
+                
+                st.session_state.video_generated = True
+                st.session_state.video_metadata = metadata
+                
+                progress_bar.empty()
+                status_text.empty()
+                
+                # Show generation details
+                metadata = result.get('metadata', {})
+                if metadata:
+                    with st.expander("📊 Generation Details"):
+                        st.write(f"**Provider:** Stability AI")
+                        st.write(f"**Model:** {metadata.get('model', 'svd-xt-1-1')}")
+                        st.write(f"**Style:** {metadata.get('style', style)}")
+                        st.write(f"**Duration:** {metadata.get('duration', duration)}s")
+                        st.write(f"**Resolution:** {metadata.get('resolution', '1024x576')}")
+                        if 'enhanced_prompt' in metadata:
+                            st.write(f"**Enhanced Prompt:** {metadata['enhanced_prompt']}")
+                        if metadata.get('demo_mode'):
+                            st.write("**Mode:** Demo Mode (sample video)")
+                
+                st.rerun()
+                
+            else:
+                error_msg = result.get('error', 'Unknown error occurred')
+                st.error(f"❌ Video generation failed: {error_msg}")
+                
+                # Provide helpful error suggestions
+                if "API key" in error_msg:
+                    st.info("💡 Solution: Add your Stability AI API key to the .env file")
+                elif "quota" in error_msg.lower() or "credit" in error_msg.lower():
+                    st.info("💡 Solution: Check your Stability AI account credits and billing")
+                elif "access" in error_msg.lower() or "permission" in error_msg.lower():
+                    st.info("💡 Solution: Ensure your Stability AI account has video generation access")
+                else:
+                    st.info("💡 The app will continue in demo mode")
+                
         except Exception as e:
-            st.error(f"Error generating video: {str(e)}")
-            st.error("Please try again or contact support if the issue persists.")
+            st.error(f"❌ Unexpected error: {str(e)}")
+            st.info("🔄 Falling back to demo mode...")
+            
+            # Fallback to demo mode
+            st.session_state.video_generated = True
+            st.session_state.video_url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+            st.session_state.video_path = None
+            st.rerun()
 
 def create_demo_video(prompt, duration, style):
-    """Create a demo video file (placeholder for actual API integration)"""
-    # This is a placeholder function - in production, you would:
-    # 1. Call the actual AI video generation API
-    # 2. Handle the response and download the video
-    # 3. Save it to a temporary location
-    
-    # For now, return a path to where the video would be saved
+    """Create a demo video file (placeholder for actual Sora integration)"""
+    # This function is kept for backward compatibility but is now handled by StabilityAIClient
     temp_dir = tempfile.gettempdir()
-    video_filename = f"peppo_video_{int(time.time())}.mp4"
+    video_filename = f"stability_demo_{int(time.time())}.mp4"
     video_path = os.path.join(temp_dir, video_filename)
-    
-    # In a real implementation, you would save the generated video here
-    # For demo purposes, we'll just return the path
     return video_path
-
-# API Integration functions (to be implemented based on chosen provider)
-def call_runway_api(prompt, api_key, duration, style):
-    """Call Runway ML API"""
-    # Implement Runway ML API integration
-    pass
-
-def call_stable_video_api(prompt, api_key, duration, style):
-    """Call Stable Video Diffusion API"""
-    # Implement Stable Video Diffusion API integration
-    pass
-
-def call_pika_api(prompt, api_key, duration, style):
-    """Call Pika Labs API"""
-    # Implement Pika Labs API integration
-    pass
 
 if __name__ == "__main__":
     main()

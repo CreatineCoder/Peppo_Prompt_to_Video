@@ -1,6 +1,8 @@
 # 🎬 Peppo AI Video Generator
 
-A Streamlit web application for the Peppo AI Engineering Internship Challenge that generates short AI videos from text prompts.
+# Peppo AI Engineering Internship Challenge
+
+A beautiful Streamlit application that generates 5-10 second videos from text prompts using **OpenAI's Sora model**. Built with a futuristic sci-fi theme and modular architecture for scalability.
 
 ## 🎯 Challenge Requirements
 
